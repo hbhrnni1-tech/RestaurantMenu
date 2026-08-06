@@ -614,8 +614,12 @@ function renderAdminLogin(){
       <h2 class="display" style="margin:8px 0 2px; font-weight:800;">כניסת מנהל</h2>
       <p style="font-size:.8rem; opacity:.6;">אזור מוגן — לצוות המזנון בלבד</p>
     </div>
-    <input id="admin-pass-input" type="password" inputmode="numeric" placeholder="סיסמה"
-      style="width:100%; border:1px solid var(--line); border-radius:10px; padding:13px 14px; font-size:1rem; text-align:center; margin-bottom:10px; background:#fff;">
+    <div style="position:relative; margin-bottom:10px;">
+      <input id="admin-pass-input" type="password" inputmode="numeric" placeholder="סיסמה"
+        style="width:100%; border:1px solid var(--line); border-radius:10px; padding:13px 44px 13px 14px; font-size:1rem; text-align:center; background:#fff;">
+      <button type="button" data-action="toggle-pass-visibility" title="הצג/הסתר סיסמה"
+        style="position:absolute; top:50%; left:8px; transform:translateY(-50%); background:none; border:none; font-size:1.1rem; opacity:.6; padding:6px;">👁️</button>
+    </div>
     ${state.adminError ? `<p style="color:var(--tomato); text-align:center; font-size:.82rem; margin:0 0 10px;">${state.adminError}</p>` : ""}
     <button data-action="admin-submit" class="btn-primary" style="width:100%;">כניסה</button>
   </div>`;
@@ -805,6 +809,18 @@ function attachHandlers(){
       el.addEventListener("input", (e)=>{
         const pid = el.dataset.pid;
         el._noteVal = e.target.value; // נשמר בזיכרון עד ללחיצה על "הוסף לעגלה"
+      });
+      return;
+    }
+    if(action === "toggle-pass-visibility"){
+      // מטפלים ישירות ב-DOM (בלי render() מלא) כדי לא לאבד את הסיסמה שכבר הוקלדה
+      el.addEventListener("click", ()=>{
+        const input = document.getElementById("admin-pass-input");
+        if(!input) return;
+        const showing = input.type === "text";
+        input.type = showing ? "password" : "text";
+        el.textContent = showing ? "👁️" : "🙈";
+        input.focus();
       });
       return;
     }
