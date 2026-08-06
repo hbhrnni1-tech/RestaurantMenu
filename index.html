@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>מזנון המשפחה | תפריט דיגיטלי</title>
+
+<!-- Google Fonts: Rubik = כותרות/מחירים, Heebo = טקסט רץ, JetBrains Mono = פתק ההזמנה (כמו קבלה מהקופה) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800;900&family=Heebo:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+  /* =========================================================
+     טוקנים עיצוביים — כאן קובעים את "זהות המותג" של המזנון
+     ========================================================= */
+  :root{
+    --ink:#241F1B;          /* כמעט-שחור חמים, לטקסט וכותרות */
+    --paper:#FBF6EA;        /* רקע נייר בהיר */
+    --paper-2:#F3ECD9;      /* רקע כרטיסים/פאנלים */
+    --mustard:#EFA22E;      /* צבע מותג ראשי — חרדל */
+    --mustard-dark:#C97F16;
+    --tomato:#DD4B2F;       /* צבע מותג משני — עגבניה, אזהרות/CTA */
+    --tomato-dark:#B5361E;
+    --sage:#4F7A52;         /* ירוק — "זמין במלאי" */
+    --sage-dark:#3C5E3E;
+    --teal:#2C8C82;         /* טורקיז נעים — לאינדיקטור העגלה בסרגל העליון */
+    --teal-dark:#1F6960;
+    --line:#D8CDB0;         /* קווי הפרדה על נייר */
+    --paper-shadow: 0 10px 30px -12px rgba(36,31,27,0.35);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Heebo', system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    min-height:100vh;
+  }
+  h1,h2,h3, .display{ font-family:'Rubik', 'Heebo', sans-serif; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* טקסטורת "נייר קרפט" עדינה ברקע — לא תמונה חיצונית, רק גרדיאנט */
+  .paper-texture{
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(239,162,46,0.06) 0, transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(221,75,47,0.06) 0, transparent 40%);
+  }
+
+  ::-webkit-scrollbar{ height:0; width:0; }
+
+  button{ font-family:inherit; cursor:pointer; }
+  button:disabled{ cursor:not-allowed; }
+  input{ font-family:inherit; }
+  a{ text-decoration:none; color:inherit; }
+
+  /* עיגול "חותמת" לאייקון/אימוג'י של מוצר במקום תמונה אמיתית */
+  .thumb{
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:2.1rem;
+    background:linear-gradient(155deg, var(--paper-2), #EADFC2);
+    border:1px solid var(--line);
+  }
+  .thumb img{ width:100%; height:100%; object-fit:cover; }
+
+  /* תגית "אזל מהמלאי" */
+  .badge-out{
+    position:absolute; top:8px; left:8px;
+    background:var(--tomato); color:#fff;
+    font-family:'Rubik'; font-weight:800; font-size:.68rem;
+    padding:4px 9px; border-radius:999px;
+    box-shadow:0 3px 8px -2px rgba(221,75,47,.6);
+    letter-spacing:.02em;
+    z-index:2;
+  }
+  .badge-low{
+    position:absolute; top:8px; left:8px;
+    background:var(--mustard); color:var(--ink);
+    font-family:'Rubik'; font-weight:800; font-size:.68rem;
+    padding:4px 9px; border-radius:999px;
+    z-index:2;
+  }
+
+  .tab-active{
+    background:var(--ink) !important; color:var(--paper) !important;
+  }
+
+  .stepper-btn{
+    width:34px; height:34px; border-radius:10px;
+    border:1.5px solid var(--ink); background:var(--paper);
+    font-family:'Rubik'; font-weight:800; font-size:1.05rem;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .1s;
+  }
+  .stepper-btn:active{ transform:scale(.9); }
+  .stepper-btn:disabled{ opacity:.3; }
+
+  .btn-primary{
+    background:var(--ink); color:var(--paper);
+    font-family:'Rubik'; font-weight:700;
+    border-radius:12px; padding:12px 18px;
+    transition:transform .12s, opacity .12s;
+  }
+  .btn-primary:active{ transform:scale(.97); }
+  .btn-primary:disabled{ opacity:.35; }
+
+  .btn-tomato{
+    background:var(--tomato); color:#fff;
+    font-family:'Rubik'; font-weight:800;
+    border-radius:12px; padding:12px 18px;
+  }
+  .btn-tomato:active{ transform:scale(.97); }
+
+  /* ------- פתק הזמנה לדלפק (האלמנט המזוהה של העיצוב) -------
+     נראה כמו קבלה שיוצאת ממדפסת קופה: קצה משונן, קווים מקווקווים,
+     טיפוגרפיה מונוספייס. זה מה שהעובד מאחורי הדלפק יקרא. */
+  .ticket{
+    background:#fff;
+    color:#1c1a17;
+    border-radius:2px;
+    box-shadow:var(--paper-shadow);
+    position:relative;
+    padding:26px 22px 30px;
+  }
+  .ticket::before, .ticket::after{
+    content:"";
+    position:absolute; left:0; right:0; height:12px;
+    background-image: radial-gradient(circle, var(--paper) 6px, transparent 7px);
+    background-size: 18px 18px;
+    background-repeat: repeat-x;
+  }
+  .ticket::before{ top:-6px; background-position: 0 -6px; }
+  .ticket::after{ bottom:-6px; background-position: 0 6px; transform:scaleY(-1); }
+  .ticket-dashed{
+    border-bottom:2px dashed #C9C2B4;
+  }
+
+  .fade-in{ animation:fadeIn .18s ease-out; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  .slide-up{ animation:slideUp .22s cubic-bezier(.2,.8,.2,1); }
+  @keyframes slideUp{ from{ transform:translateY(100%);} to{ transform:translateY(0);} }
+
+  .toast{
+    position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:var(--paper);
+    font-family:'Rubik'; font-weight:700; font-size:.85rem;
+    padding:10px 18px; border-radius:999px; z-index:80;
+    box-shadow:0 8px 20px -6px rgba(0,0,0,.4);
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+  .switch{ width:46px; height:26px; border-radius:999px; position:relative; transition:background .15s; flex-shrink:0; }
+  .switch::after{
+    content:""; position:absolute; top:3px; width:20px; height:20px; border-radius:999px;
+    background:#fff; transition:right .15s; box-shadow:0 1px 3px rgba(0,0,0,.3);
+  }
+</style>
+</head>
+<body class="paper-texture">
+
+<div id="app" style="max-width:520px; margin:0 auto; min-height:100vh; position:relative; padding-bottom:90px;"></div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* =====================================================================
+   CONFIG — הגדרות עסקיות שאפשר לשנות בקלות
+   ===================================================================== */
+const CONFIG = {
+  businessName: "מזנון המשפחה",          // TODO: שם העסק — מופיע בפתק ההזמנה ובמסך הכניסה
+  headerTitle: "תפריט מזנון",             // TODO: הכיתוב בסרגל העליון (קצר יותר, לתצוגה בנייד)
+  adminPassword: "1234",                  // TODO: סיסמת מנהל — לשנות לפני עלייה לאוויר!
+  lowStockThreshold: 3,                   // מתחת לכמות הזו תוצג תגית "כמות מוגבלת"
+  currency: "₪"
+};
+
+/* =====================================================================
+   מוצרי המזנון — מבנה הנתונים (Data Structure)
+   כאן משנים: שם, תיאור, מחיר, מלאי (stock), אימוג'י/תמונה.
+   image: אפשר להחליף מ-null לכתובת URL אמיתית של תמונת המוצר,
+   לדוגמה: image: "https://example.com/photos/burger.jpg"
+   ===================================================================== */
+const CATEGORIES = [
+  { id:"mains",  name:"ארוחות ועיקריות" },
+  { id:"sides",  name:"תוספות ונישנושים" },
+  { id:"drinks", name:"שתייה ושתייה חמה" },
+];
+
+/* notePlaceholder: דוגמת הערה שמוצגת כ-placeholder בשדה ההערה של כל מוצר,
+   מותאמת לסוג המנה (כדי שלא תוצע "בלי חרדל" על פסטה...) */
+const DEFAULT_PRODUCTS = [
+  { id:"p1",  cat:"mains",  name:"המבורגר",      desc:"בקר טחון טרי, חסה, עגבנייה ורוטב הבית",     price:42, stock:14, emoji:"🍔", image:null, available:true, notePlaceholder:"למשל: בלי חרדל / וול-דאן" },
+  { id:"p2",  cat:"mains",  name:"פיצה",          desc:"פרוסת פיצה איטלקית עם מוצרלה",              price:18, stock:9,  emoji:"🍕", image:null, available:true, notePlaceholder:"למשל: בלי זיתים / חריף" },
+  { id:"p3",  cat:"mains",  name:"בייגל טוסט",    desc:"בייגל חם עם גבינה צהובה נמסה וזיתים",       price:22, stock:9,  emoji:"🥯", image:null, available:true, notePlaceholder:"למשל: בלי זיתים / טוסט יבש" },
+  { id:"p4",  cat:"mains",  name:"נקניקיה בלחם",  desc:"נקניקיית בקר על הגריל בלחמנייה חמה",        price:16, stock:0,  emoji:"🌭", image:null, available:true, notePlaceholder:"למשל: עם חרדל וקטשופ" },
+  { id:"p5",  cat:"mains",  name:"פסטה",          desc:"פסטה ברוטב עגבניות ובזיליקום טרי",          price:32, stock:6,  emoji:"🍝", image:null, available:true, notePlaceholder:"למשל: בלי גבינה / פחות חריף" },
+
+  { id:"p6",  cat:"sides",  name:"צ'יפס",          desc:"צ'יפס חם ופריך עם מלח ים",                  price:14, stock:20, emoji:"🍟", image:null, available:true, notePlaceholder:"למשל: בלי מלח / עם קטשופ בצד" },
+  { id:"p7",  cat:"sides",  name:"פופקורן",        desc:"פופקורן טרי, מלוח או ממותק",                price:10, stock:2,  emoji:"🍿", image:null, available:true, notePlaceholder:"למשל: מתוק במקום מלוח" },
+
+  { id:"p8",  cat:"drinks", name:"שתייה מתוקה",    desc:"פחית קרה — קולה / ספרייט / פנטה",           price:8,  stock:24, emoji:"🥤", image:null, available:true, notePlaceholder:"למשל: בלי קרח / קולה זירו" },
+  { id:"p9",  cat:"drinks", name:"בירה",           desc:"בירה מהחבית, כוס קרה",                      price:16, stock:10, emoji:"🍺", image:null, available:true, notePlaceholder:"למשל: כוס גדולה / קטנה" },
+  { id:"p10", cat:"drinks", name:"ברד",            desc:"ברד קרח בטעמים מתחלפים",                    price:14, stock:0,  emoji:"🧊", image:null, available:true, notePlaceholder:"למשל: טעם תות / קולה" },
+  { id:"p11", cat:"drinks", name:"קפה",            desc:"קפה טרי מהמכונה — הפוך / שחור",             price:10, stock:15, emoji:"☕", image:null, available:true, notePlaceholder:"למשל: הפוך חלש / בלי סוכר" },
+];
+
+/* =====================================================================
+   שכבת אחסון — "מנגנון שמירה מרכזי" מדומה עם LocalStorage.
+   כל שינוי במלאי נשמר תחת מפתח משותף (STORAGE_KEY_PRODUCTS).
+   אירוע ה-"storage" של הדפדפן מאזין לשינויים שבוצעו בטאב/חלון אחר
+   (למשל טאב המנהל) ומרענן מיידית את מסך הלקוח — כך מדמים "זמן אמת"
+   בלי צורך בשרת. לחיבור אמיתי בין כמה מכשירים שונים (לא רק טאבים
+   של אותו דפדפן) יש להחליף שכבה זו ב-Firebase Realtime DB / Supabase.
+   ===================================================================== */
+const STORAGE_KEY_PRODUCTS = "maznon_products_v1";
+const STORAGE_KEY_CART      = "maznon_cart_v1";
+const STORAGE_KEY_ADMIN     = "maznon_admin_auth_v1";
+const STORAGE_KEY_CUSTOMER  = "maznon_customer_v1";  // שם מלא + טלפון — נשמר ב-sessionStorage בלבד (ר' הערה למטה)
+const STORAGE_KEY_ORDERS    = "maznon_orders_v1";    // רשימת ההזמנות המשותפת — נצפית במסך המנהל
+
+function loadProducts(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY_PRODUCTS);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ console.warn("Could not read products from storage", e); }
+  localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
+  return JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+}
+function saveProducts(products){
+  localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(products));
+}
+function loadCart(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY_CART);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+function saveCart(cart){
+  localStorage.setItem(STORAGE_KEY_CART, JSON.stringify(cart));
+}
+/* שימו לב: הפרטים של מי שסרק את הקוד נשמרים ב-sessionStorage (לא localStorage) —
+   כלומר הם "חיים" רק כל עוד הטאב/החלון פתוח, ונמחקים כשסוגרים אותו.
+   כך כל סריקה חדשה (= לקוח חדש עם הזמנה חדשה) תמיד תתחיל ממסך "כניסה" נקי,
+   ואין "זיכרון" של מי שסרק בעבר. */
+function loadCustomer(){
+  try{
+    const raw = sessionStorage.getItem(STORAGE_KEY_CUSTOMER);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function saveCustomer(customer){
+  sessionStorage.setItem(STORAGE_KEY_CUSTOMER, JSON.stringify(customer));
+}
+
+/* הזמנות: מאוחסנות ב-localStorage (משותף בין כל הטאבים/מכשירים על אותו דפדפן)
+   כדי שמסך המנהל יראה כל הזמנה חדשה מיד ברגע שהיא נשלחת. */
+function loadOrders(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY_ORDERS);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+function saveOrders(orders){
+  localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(orders));
+}
+
+/* =====================================================================
+   מצב האפליקציה (State)
+   ===================================================================== */
+const state = {
+  view: "menu",            // welcome | menu | cart | ticket | admin-login | admin
+  activeCategory: CATEGORIES[0].id,
+  products: loadProducts(),
+  cart: loadCart(),         // [{id, qty, note}]
+  tableNumber: "",
+  lastOrder: null,          // ההזמנה הפעילה של הלקוח הנוכחי (לצורך מסך הפתק)
+  orders: loadOrders(),     // כל ההזמנות — נצפות במסך המנהל
+  customer: loadCustomer(), // {name, phone} — נאסף בכל כניסה מחדש (לא נשמר בין ביקורים)
+  welcomeError: "",
+  adminAuthed: sessionStorage.getItem(STORAGE_KEY_ADMIN) === "1",
+  adminError: "",
+  adminTab: "active",       // active | fulfilled | inventory
+  showAddProductForm: false,
+  addProductError: "",
+};
+if(!state.customer) state.view = "welcome";
+
+function isOutOfStock(p){ return p.stock <= 0 || p.available === false; }
+
+function findProduct(id){ return state.products.find(p=>p.id===id); }
+
+function cartCount(){ return state.cart.reduce((sum,i)=>sum+i.qty,0); }
+function cartTotal(){
+  return state.cart.reduce((sum,i)=>{
+    const p = findProduct(i.id);
+    return p ? sum + p.price*i.qty : sum;
+  },0);
+}
+
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=> t.classList.remove("show"), 1600);
+}
+
+/* סנכרון בין טאבים: כשמנהל מעדכן מלאי/הזמנה בטאב אחר, זה משתקף מיידית */
+window.addEventListener("storage", (e)=>{
+  if(e.key === STORAGE_KEY_PRODUCTS){
+    state.products = loadProducts();
+    render();
+  }
+  if(e.key === STORAGE_KEY_ORDERS){
+    state.orders = loadOrders();
+    render();
+  }
+});
+
+/* בונה קישור WhatsApp עם הודעה מוכנה מראש, כדי שהמנהל יוכל בלחיצה אחת
+   לשלוח ללקוח הודעה שההזמנה שלו מוכנה. עובד עם מספרים ישראליים (05X...).
+   הערה: זו שיטה פשוטה שדורשת פתיחת WhatsApp Web/אפליקציה על מכשיר המנהל.
+   לשליחה אוטומטית לגמרי (בלי לחיצה של המנהל) יש צורך בשירות SMS/WhatsApp
+   API חיצוני (כמו Twilio) המחובר לשרת — שלב עתידי שדורש backend. */
+function buildWhatsappLink(phone, orderNumber, customerName){
+  let digits = (phone||"").replace(/[^0-9]/g,"");
+  if(digits.startsWith("0")) digits = "972" + digits.slice(1);
+  const msg = `שלום ${customerName}, ההזמנה שלך מס' #${orderNumber} ב-${CONFIG.businessName} מוכנה לאיסוף! 🎉`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
+}
+
+/* =====================================================================
+   רינדור — כל הפונקציות מייצרות מחרוזת HTML לפי ה-state
+   ===================================================================== */
+function render(){
+  const app = document.getElementById("app");
+  let html = "";
+  if(state.view === "welcome")     html = renderWelcome();
+  else if(state.view === "menu")        html = renderHeader() + renderMenu();
+  else if(state.view === "cart")   html = renderHeader() + renderCart();
+  else if(state.view === "ticket") html = renderTicket();
+  else if(state.view === "admin-login") html = renderAdminLogin();
+  else if(state.view === "admin")  html = renderAdmin();
+
+  app.innerHTML = html + (state.view!=="ticket" && state.view!=="admin-login" && state.view!=="welcome" ? renderBottomNav() : "");
+  attachHandlers();
+}
+
+function renderWelcome(){
+  return `
+  <div class="fade-in" style="min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:26px 22px;">
+    <div style="text-align:center; margin-bottom:26px;">
+      <div style="font-size:2.4rem;">🥪</div>
+      <h1 class="display" style="margin:10px 0 4px; font-size:1.4rem; font-weight:900;">${CONFIG.businessName}</h1>
+      <p style="font-size:.85rem; opacity:.65; margin:0;">כדי להיכנס לתפריט, נא למלא פרטים קצרים</p>
+    </div>
+
+    <label style="font-size:.8rem; font-weight:600; margin-bottom:6px; display:block;">שם מלא</label>
+    <input id="welcome-name-input" type="text" placeholder="לדוגמה: ישראל ישראלי" autocomplete="name"
+      style="width:100%; border:1px solid var(--line); border-radius:10px; padding:13px 14px; font-size:.95rem; margin-bottom:14px; background:#fff;">
+
+    <label style="font-size:.8rem; font-weight:600; margin-bottom:6px; display:block;">מספר טלפון</label>
+    <input id="welcome-phone-input" type="tel" inputmode="numeric" placeholder="לדוגמה: 0501234567" autocomplete="tel"
+      style="width:100%; border:1px solid var(--line); border-radius:10px; padding:13px 14px; font-size:.95rem; margin-bottom:8px; background:#fff;">
+
+    ${state.welcomeError ? `<p style="color:var(--tomato); font-size:.8rem; margin:0 0 10px;">${state.welcomeError}</p>` : ""}
+
+    <button data-action="welcome-submit" class="btn-primary" style="width:100%; font-size:1rem; margin-top:8px;">כניסה לתפריט 🍽</button>
+    <p style="font-size:.68rem; opacity:.5; text-align:center; margin-top:14px;">הפרטים נשמרים במכשיר זה בלבד ומשמשים אותנו ליצירת קשר בנוגע להזמנה</p>
+  </div>`;
+}
+
+function renderHeader(){
+  return `
+  <header style="position:sticky; top:0; z-index:30; background:linear-gradient(135deg, var(--mustard), var(--mustard-dark)); color:var(--ink);
+                  padding:14px 16px; display:flex; align-items:center; justify-content:space-between;
+                  box-shadow:0 6px 16px -8px rgba(36,31,27,.35);">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:1.4rem;">🥪</span>
+      <h1 class="display" style="font-size:1.05rem; font-weight:800; margin:0; color:var(--ink);">${CONFIG.headerTitle}</h1>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button data-action="go-cart" style="position:relative; background:var(--ink); border:none; border-radius:10px; width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:1.15rem;">
+        🛒
+        ${cartCount() > 0 ? `<span style="position:absolute; top:-6px; left:-6px; background:var(--teal); color:#fff; font-family:'Rubik'; font-weight:800; font-size:.65rem; width:19px; height:19px; border-radius:999px; display:flex; align-items:center; justify-content:center; border:2px solid var(--mustard);">${cartCount()}</span>` : ""}
+      </button>
+      <!-- כפתור גישה למנהל: מכוון, קטן ולא בולט ("סודי" יחסית) -->
+      <button data-action="go-admin" title="כניסת מנהל" style="background:rgba(36,31,27,.12); border:1px solid rgba(36,31,27,.3); border-radius:10px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; font-size:.85rem; color:var(--ink); opacity:.7;">
+        ⚙
+      </button>
+    </div>
+  </header>`;
+}
+
+function renderBottomNav(){
+  if(state.view !== "menu") return "";
+  return `
+  <div style="position:fixed; bottom:0; left:0; right:0; max-width:520px; margin:0 auto; padding:12px 16px; z-index:40;">
+    <button data-action="go-cart"
+      style="width:100%; display:flex; align-items:center; justify-content:space-between;
+             background:var(--ink); color:var(--paper); border-radius:14px; padding:14px 18px;
+             box-shadow:0 10px 24px -8px rgba(36,31,27,.5); ${cartCount()===0 ? "opacity:.4; pointer-events:none;" : ""}">
+      <span class="display" style="font-weight:800;">🛒 לעגלה (${cartCount()})</span>
+      <span class="mono" style="font-weight:700;">${cartTotal()} ${CONFIG.currency}</span>
+    </button>
+  </div>`;
+}
+
+function renderMenu(){
+  const tabs = CATEGORIES.map(c => `
+    <button data-action="set-cat" data-cat="${c.id}"
+      class="${state.activeCategory===c.id ? "tab-active":""}"
+      style="white-space:nowrap; padding:9px 16px; border-radius:999px; border:1.5px solid var(--ink);
+             font-family:'Rubik'; font-weight:700; font-size:.85rem; background:transparent; color:var(--ink);">
+      ${c.name}
+    </button>`).join("");
+
+  const products = state.products.filter(p=>p.cat===state.activeCategory);
+
+  const cards = products.map(p => renderProductCard(p)).join("");
+
+  return `
+  <div class="fade-in" style="padding:14px 16px 20px;">
+    <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:14px;">
+      ${tabs}
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      ${cards || `<p style="text-align:center; opacity:.6; padding:30px 0;">אין מוצרים בקטגוריה זו כרגע</p>`}
+    </div>
+  </div>`;
+}
+
+function renderProductCard(p){
+  const out = isOutOfStock(p);
+  const low = !out && p.stock <= CONFIG.lowStockThreshold;
+  const inCart = state.cart.find(i=>i.id===p.id);
+  const qty = inCart ? inCart.qty : 1;
+
+  return `
+  <div style="position:relative; display:flex; gap:12px; background:var(--paper-2); border:1px solid var(--line);
+              border-radius:16px; padding:12px; ${out ? "opacity:.65;" : ""}">
+    ${out ? `<span class="badge-out">אזל מהמלאי</span>` : (low ? `<span class="badge-low">כמות מוגבלת</span>` : "")}
+    <div style="width:76px; height:76px; border-radius:12px; overflow:hidden; flex-shrink:0;">
+      <div class="thumb">${p.image ? `<img src="${p.image}" alt="${p.name}">` : p.emoji}</div>
+    </div>
+    <div style="flex:1; min-width:0;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+        <h3 class="display" style="margin:0; font-size:1rem; font-weight:700;">${p.name}</h3>
+        <span class="mono" style="font-weight:700; font-size:.95rem; white-space:nowrap;">${p.price} ${CONFIG.currency}</span>
+      </div>
+      <p style="margin:3px 0 8px; font-size:.78rem; opacity:.7; line-height:1.35;">${p.desc}</p>
+
+      ${out ? `
+        <button disabled class="btn-primary" style="width:100%; opacity:.35;">אזל מהמלאי</button>
+      ` : `
+        <div data-pid="${p.id}" class="product-controls" style="display:flex; flex-direction:column; gap:7px;">
+          <div style="font-size:.72rem; font-weight:700; color:${low ? 'var(--mustard-dark)':'var(--sage-dark)'};">
+            במלאי: ${p.stock} יח'
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="stepper-btn" data-action="qty-minus" data-pid="${p.id}">−</button>
+              <span class="mono qty-display" style="min-width:20px; text-align:center; font-weight:700;">${qty}</span>
+              <button class="stepper-btn" data-action="qty-plus" data-pid="${p.id}" ${qty>=p.stock ? "disabled":""}>+</button>
+            </div>
+            <button data-action="add-to-cart" data-pid="${p.id}" class="btn-primary" style="padding:9px 16px; font-size:.82rem;">הוסף לעגלה</button>
+          </div>
+          <input type="text" data-action="note-input" data-pid="${p.id}" placeholder="הערה מיוחדת (${p.notePlaceholder ? p.notePlaceholder.replace('למשל: ','') : 'אופציונלי'})"
+            style="width:100%; border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:.75rem; background:#fff;">
+        </div>
+      `}
+    </div>
+  </div>`;
+}
+
+function renderCart(){
+  const items = state.cart.map(i=>{
+    const p = findProduct(i.id);
+    if(!p) return "";
+    return `
+    <div style="display:flex; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line);">
+      <div style="width:52px; height:52px; border-radius:10px; overflow:hidden; flex-shrink:0;">
+        <div class="thumb" style="font-size:1.4rem;">${p.image ? `<img src="${p.image}" alt="">` : p.emoji}</div>
+      </div>
+      <div style="flex:1; min-width:0;">
+        <div style="display:flex; justify-content:space-between; gap:6px;">
+          <span class="display" style="font-weight:700; font-size:.92rem;">${p.name}</span>
+          <span class="mono" style="font-weight:700; font-size:.88rem;">${p.price*i.qty} ${CONFIG.currency}</span>
+        </div>
+        ${i.note ? `<p style="margin:2px 0 0; font-size:.72rem; opacity:.6;">📝 ${escapeHtml(i.note)}</p>` : ""}
+        <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+          <button class="stepper-btn" style="width:28px; height:28px;" data-action="cart-minus" data-pid="${p.id}">−</button>
+          <span class="mono" style="min-width:16px; text-align:center; font-size:.85rem;">${i.qty}</span>
+          <button class="stepper-btn" style="width:28px; height:28px;" data-action="cart-plus" data-pid="${p.id}" ${p.stock<=0?"disabled":""}>+</button>
+          <button data-action="cart-remove" data-pid="${p.id}" style="margin-right:auto; background:none; border:none; color:var(--tomato); font-size:.78rem; font-weight:700;">הסר</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  return `
+  <div class="fade-in" style="padding:16px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+      <button data-action="go-menu" style="background:none; border:none; font-size:1.2rem;">→</button>
+      <h2 class="display" style="margin:0; font-size:1.15rem; font-weight:800;">העגלה שלי</h2>
+    </div>
+
+    ${state.cart.length===0 ? `
+      <div style="text-align:center; padding:50px 0; opacity:.6;">
+        <p style="font-size:2rem; margin:0 0 8px;">🛒</p>
+        <p>העגלה ריקה. חזרו לתפריט ובחרו משהו טעים!</p>
+      </div>
+    ` : `
+      <div style="margin-bottom:14px;">${items}</div>
+
+      <label style="display:block; font-size:.8rem; font-weight:600; margin-bottom:6px;">מספר שולחן (אופציונלי)</label>
+      <input id="table-number-input" type="text" value="${escapeHtml(state.tableNumber)}" placeholder="לדוגמה: שולחן 4"
+        style="width:100%; border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:16px; background:#fff;">
+
+      <div style="display:flex; justify-content:space-between; align-items:baseline; padding:12px 0; border-top:2px solid var(--ink); margin-bottom:14px;">
+        <span class="display" style="font-weight:700;">סה"כ לתשלום</span>
+        <span class="mono" style="font-size:1.3rem; font-weight:800;">${cartTotal()} ${CONFIG.currency}</span>
+      </div>
+
+      <button data-action="go-ticket" class="btn-tomato" style="width:100%; font-size:1rem;">🧾 הצג הזמנה לדלפק</button>
+    `}
+  </div>`;
+}
+
+/* ============ הפתק המשותף — משמש גם במסך הלקוח וגם במסך המנהל ============
+   כדי שההזמנה תיראה זהה בשני המקומות (בדיוק כמו שביקשת). */
+function renderTicketMarkup(order, opts){
+  opts = opts || {};
+  const time = new Date(order.createdAt).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"});
+  const rows = order.items.map(i=>`
+    <div style="margin:10px 0;">
+      <div style="display:flex; justify-content:space-between; font-size:1.05rem; font-weight:700;">
+        <span>${i.qty} × ${escapeHtml(i.name)}</span>
+        <span class="mono">${i.price*i.qty} ${CONFIG.currency}</span>
+      </div>
+      ${i.note ? `<div style="font-size:.85rem; opacity:.75; margin-top:2px;">📝 ${escapeHtml(i.note)}</div>` : ""}
+    </div>`).join("");
+
+  return `
+  <div class="ticket mono" style="${opts.style||''}">
+    <div style="text-align:center; margin-bottom:14px;">
+      <div class="display" style="font-weight:900; font-size:1.2rem; letter-spacing:.02em;">${CONFIG.businessName}</div>
+      <div style="font-size:.75rem; opacity:.6; margin-top:2px;">הזמנה לדלפק</div>
+    </div>
+
+    <div class="ticket-dashed" style="padding-bottom:12px; margin-bottom:12px; display:flex; justify-content:space-between; font-size:.85rem;">
+      <span>מס' הזמנה: <b>#${order.id}</b></span>
+      <span>${time}</span>
+    </div>
+
+    <div style="font-size:.85rem; text-align:center; margin-bottom:8px; opacity:.8;">${escapeHtml(order.customerName)}</div>
+    ${order.tableNumber ? `<div style="font-size:1.4rem; font-weight:800; text-align:center; margin-bottom:14px;">🪑 ${escapeHtml(order.tableNumber)}</div>` : ""}
+
+    <div class="ticket-dashed" style="padding-bottom:6px;">
+      ${rows}
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:16px; padding-top:10px;">
+      <span style="font-size:1.1rem; font-weight:800;">סה"כ</span>
+      <span style="font-size:1.6rem; font-weight:800;">${order.total} ${CONFIG.currency}</span>
+    </div>
+
+    ${opts.showPaymentNote ? `
+      <div style="text-align:center; font-size:.7rem; opacity:.5; margin-top:18px;">
+        * נא להציג מסך זה בקופה לתשלום *
+      </div>` : ""}
+  </div>`;
+}
+
+function renderTicket(){
+  const order = state.lastOrder ? state.orders.find(o=>o.id===state.lastOrder) : null;
+  const isFulfilled = order && order.status === "fulfilled";
+
+  const ticketHtml = order
+    ? renderTicketMarkup(order, { showPaymentNote:true })
+    : `<div class="ticket mono" style="text-align:center; opacity:.6;">לא נמצאה הזמנה</div>`;
+
+  return `
+  <div class="fade-in" style="padding:22px 16px; min-height:100vh; display:flex; flex-direction:column;">
+    <button data-action="go-cart" style="align-self:flex-start; background:none; border:none; font-size:1.2rem; margin-bottom:14px;">→ חזרה לעגלה</button>
+
+    ${isFulfilled ? `
+      <div class="fade-in" style="background:var(--sage); color:#fff; border-radius:14px; padding:14px 16px; text-align:center; margin-bottom:16px;">
+        <div style="font-size:1.4rem;">✅</div>
+        <div class="display" style="font-weight:800; margin-top:2px;">ההזמנה שלך מוכנה לאיסוף!</div>
+      </div>
+    ` : `
+      <div style="background:var(--paper-2); border:1px solid var(--line); border-radius:14px; padding:10px 14px; text-align:center; margin-bottom:16px; font-size:.8rem; opacity:.75;">
+        ⏳ ההזמנה נקלטה ומוכנה בדלפק... המסך יתעדכן אוטומטית כשהיא תהיה מוכנה
+      </div>
+    `}
+
+    <div style="margin:0 0 26px;">${ticketHtml}</div>
+
+    <button data-action="new-order" class="btn-primary" style="width:100%; margin-top:auto;">✅ שולם — הזמנה חדשה</button>
+  </div>`;
+}
+
+function renderAdminLogin(){
+  return `
+  <div class="fade-in" style="padding:16px; min-height:100vh; display:flex; flex-direction:column; justify-content:center;">
+    <button data-action="go-menu" style="align-self:flex-start; background:none; border:none; font-size:1.2rem; margin-bottom:20px;">→ חזרה לתפריט</button>
+    <div style="text-align:center; margin-bottom:20px;">
+      <div style="font-size:2rem;">🔐</div>
+      <h2 class="display" style="margin:8px 0 2px; font-weight:800;">כניסת מנהל</h2>
+      <p style="font-size:.8rem; opacity:.6;">אזור מוגן — לצוות המזנון בלבד</p>
+    </div>
+    <input id="admin-pass-input" type="password" inputmode="numeric" placeholder="סיסמה"
+      style="width:100%; border:1px solid var(--line); border-radius:10px; padding:13px 14px; font-size:1rem; text-align:center; margin-bottom:10px; background:#fff;">
+    ${state.adminError ? `<p style="color:var(--tomato); text-align:center; font-size:.82rem; margin:0 0 10px;">${state.adminError}</p>` : ""}
+    <button data-action="admin-submit" class="btn-primary" style="width:100%;">כניסה</button>
+  </div>`;
+}
+
+function renderAddProductForm(){
+  const catOptions = CATEGORIES.map(c=>`<option value="${c.id}">${c.name}</option>`).join("");
+  return `
+  <div class="fade-in" style="background:var(--paper-2); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:16px;">
+    <h3 class="display" style="margin:0 0 12px; font-size:.95rem; font-weight:800;">מוצר חדש בתפריט</h3>
+
+    <label style="font-size:.75rem; font-weight:600; display:block; margin-bottom:4px;">שם המוצר *</label>
+    <input id="new-p-name" type="text" placeholder="לדוגמה: שווארמה בפיתה"
+      style="width:100%; border:1px solid var(--line); border-radius:9px; padding:9px 11px; margin-bottom:10px; background:#fff; font-size:.88rem;">
+
+    <label style="font-size:.75rem; font-weight:600; display:block; margin-bottom:4px;">קטגוריה</label>
+    <select id="new-p-cat" style="width:100%; border:1px solid var(--line); border-radius:9px; padding:9px 11px; margin-bottom:10px; background:#fff; font-size:.88rem;">
+      ${catOptions}
+    </select>
+
+    <div style="display:flex; gap:10px; margin-bottom:10px;">
+      <div style="flex:1;">
+        <label style="font-size:.75rem; font-weight:600; display:block; margin-bottom:4px;">מחיר (${CONFIG.currency}) *</label>
+        <input id="new-p-price" type="number" min="0" step="0.5" placeholder="0"
+          style="width:100%; border:1px solid var(--line); border-radius:9px; padding:9px 11px; background:#fff; font-size:.88rem;">
+      </div>
+      <div style="flex:1;">
+        <label style="font-size:.75rem; font-weight:600; display:block; margin-bottom:4px;">מלאי פתיחה</label>
+        <input id="new-p-stock" type="number" min="0" step="1" placeholder="0" value="0"
+          style="width:100%; border:1px solid var(--line); border-radius:9px; padding:9px 11px; background:#fff; font-size:.88rem;">
+      </div>
+    </div>
+
+    <label style="font-size:.75rem; font-weight:600; display:block; margin-bottom:4px;">תיאור קצר</label>
+    <input id="new-p-desc" type="text" placeholder="תיאור שיוצג ללקוח מתחת לשם המוצר"
+      style="width:100%; border:1px solid var(--line); border-radius:9px; padding:9px 11px; margin-bottom:10px; background:#fff; font-size:.88rem;">
+
+    <label style="font-size:.75rem; font-weight:600; display:block; margin-bottom:4px;">אייקון (אימוג'י — פלייסהולדר עד שתעלו תמונה אמיתית)</label>
+    <input id="new-p-emoji" type="text" maxlength="4" placeholder="🍽" value="🍽"
+      style="width:70px; text-align:center; border:1px solid var(--line); border-radius:9px; padding:9px 6px; margin-bottom:12px; background:#fff; font-size:1.1rem;">
+
+    ${state.addProductError ? `<p style="color:var(--tomato); font-size:.78rem; margin:0 0 10px;">${state.addProductError}</p>` : ""}
+
+    <button data-action="admin-add-product" class="btn-primary" style="width:100%;">➕ הוסף לתפריט</button>
+  </div>`;
+}
+
+function renderAdminInventory(){
+  const rows = state.products.map(p=>{
+    const out = isOutOfStock(p);
+    return `
+    <div style="display:flex; flex-direction:column; gap:9px; background:var(--paper-2); border:1px solid var(--line);
+                border-radius:14px; padding:10px; margin-bottom:10px; ${out?'opacity:.7;':''}">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="position:relative; width:48px; height:48px; flex-shrink:0;">
+          <label style="display:block; width:48px; height:48px; border-radius:10px; overflow:hidden; cursor:pointer;">
+            <div class="thumb" style="font-size:1.3rem;">${p.image ? `<img src="${p.image}" alt="">` : p.emoji}</div>
+            <input type="file" accept="image/*" data-action="admin-image-upload" data-pid="${p.id}" style="display:none;">
+          </label>
+          <span style="position:absolute; bottom:-3px; left:-3px; background:var(--ink); color:#fff; font-size:.55rem; padding:1px 4px; border-radius:6px; pointer-events:none;">📷</span>
+          ${p.image ? `<button data-action="admin-image-remove" data-pid="${p.id}" title="הסרת תמונה, חזרה לאייקון"
+              style="position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:999px; background:var(--tomato); color:#fff; border:none; font-size:.6rem; line-height:1; display:flex; align-items:center; justify-content:center;">✕</button>` : ""}
+        </div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:700; font-size:.9rem;">${p.name}</div>
+          <div style="font-size:.72rem; opacity:.55;">${CATEGORIES.find(c=>c.id===p.cat)?.name || ""}</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button class="stepper-btn" style="width:30px; height:30px;" data-action="admin-stock-minus" data-pid="${p.id}">−</button>
+          <input class="mono admin-stock-input" data-pid="${p.id}" data-action="admin-stock-input" type="number" min="0" value="${p.stock}"
+            style="width:44px; text-align:center; border:1px solid var(--line); border-radius:8px; padding:5px 2px; font-weight:700; background:#fff;">
+          <button class="stepper-btn" style="width:30px; height:30px;" data-action="admin-stock-plus" data-pid="${p.id}">+</button>
+        </div>
+        <button data-action="admin-toggle" data-pid="${p.id}" title="החלף זמינות"
+          class="switch" style="background:${p.available!==false ? 'var(--sage)':'var(--tomato)'}; border:none;">
+          <span style="position:absolute; top:3px; ${p.available!==false ? 'right:23px;' : 'right:3px;'} width:20px; height:20px; border-radius:999px; background:#fff; transition:right .15s; box-shadow:0 1px 3px rgba(0,0,0,.3);"></span>
+        </button>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px; padding-right:58px;">
+        <label style="font-size:.7rem; font-weight:600; opacity:.6; white-space:nowrap;">מחיר</label>
+        <div style="display:flex; align-items:center; gap:3px;">
+          <input class="mono admin-price-input" data-pid="${p.id}" data-action="admin-price-input" type="number" min="0" step="0.5" value="${p.price}"
+            style="width:60px; text-align:center; border:1px solid var(--line); border-radius:8px; padding:5px 4px; font-weight:700; background:#fff; font-size:.85rem;">
+          <span style="font-size:.75rem; opacity:.6;">${CONFIG.currency}</span>
+        </div>
+        <input class="admin-desc-input" data-pid="${p.id}" data-action="admin-desc-input" type="text" value="${escapeHtml(p.desc)}" placeholder="תיאור המוצר"
+          style="flex:1; min-width:0; border:1px solid var(--line); border-radius:8px; padding:6px 9px; font-size:.78rem; background:#fff;">
+      </div>
+    </div>`;
+  }).join("");
+
+  return `
+    <button data-action="toggle-add-product" class="btn-primary" style="width:100%; margin-bottom:14px; background:${state.showAddProductForm ? 'var(--tomato)':'var(--ink)'};">
+      ${state.showAddProductForm ? "✕ ביטול" : "➕ הוספת מוצר חדש"}
+    </button>
+    ${state.showAddProductForm ? renderAddProductForm() : ""}
+    <p style="font-size:.78rem; opacity:.6; margin:0 0 16px;">עדכון כאן משתקף מיידית בתפריט הלקוחות (בכל טאבים פתוחים) — כולל מחיר, תיאור ותמונה. לחיצה על התמונה הקטנה מאפשרת להעלות תמונה חדשה מהמחשב.</p>
+    ${rows}
+  `;
+}
+
+function renderOrderCard(order){
+  const waLink = order.customerPhone ? buildWhatsappLink(order.customerPhone, order.id, order.customerName) : null;
+  const isActive = order.status === "active";
+
+  const statusRibbon = isActive
+    ? `<span style="position:absolute; top:10px; left:-6px; background:var(--mustard); color:var(--ink); font-family:'Rubik'; font-weight:800; font-size:.68rem; padding:5px 12px 5px 10px; border-radius:999px 0 0 999px; box-shadow:0 3px 8px -2px rgba(0,0,0,.25); z-index:2;">⏳ ממתינה</span>`
+    : `<span style="position:absolute; top:10px; left:-6px; background:var(--sage); color:#fff; font-family:'Rubik'; font-weight:800; font-size:.68rem; padding:5px 12px 5px 10px; border-radius:999px 0 0 999px; box-shadow:0 3px 8px -2px rgba(0,0,0,.25); z-index:2;">✔ סופקה</span>`;
+
+  return `
+  <div style="position:relative; margin-bottom:22px;">
+    ${statusRibbon}
+    ${renderTicketMarkup(order, { showPaymentNote:false })}
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      ${waLink ? `<a href="${waLink}" target="_blank" rel="noopener"
+          style="flex:1; text-align:center; display:flex; align-items:center; justify-content:center; gap:5px; background:var(--teal); color:#fff; font-family:'Rubik'; font-weight:700; font-size:.78rem; padding:9px 10px; border-radius:10px;">📲 עדכון ללקוח</a>` : `<span style="flex:1;"></span>`}
+      ${isActive
+        ? `<button data-action="order-fulfill" data-oid="${order.id}" class="btn-primary" style="flex:1; font-size:.78rem; padding:9px 10px;">✅ סופקה במלואה</button>`
+        : `<span style="flex:1; text-align:center; align-self:center; font-size:.75rem; color:var(--sage-dark); font-weight:700;">נמסרה ${order.fulfilledAt ? new Date(order.fulfilledAt).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}) : ''}</span>`}
+    </div>
+  </div>`;
+}
+
+function renderAdminOrders(status){
+  const list = state.orders.filter(o=>o.status===status).sort((a,b)=>b.createdAt-a.createdAt);
+  if(list.length===0){
+    return `<p style="text-align:center; opacity:.55; padding:36px 0; font-size:.85rem;">
+      ${status==='active' ? 'אין כרגע הזמנות פעילות' : 'עדיין אין הזמנות שסופקו'}</p>`;
+  }
+  return list.map(renderOrderCard).join("");
+}
+
+function renderAdmin(){
+  const activeCount = state.orders.filter(o=>o.status==='active').length;
+
+  const tabs = [
+    { id:"active",    label:"הזמנות פעילות", badge: activeCount },
+    { id:"fulfilled", label:"סופקו" },
+    { id:"inventory", label:"מלאי" },
+  ].map(t => `
+    <button data-action="admin-tab" data-tab="${t.id}"
+      class="${state.adminTab===t.id ? "tab-active":""}"
+      style="position:relative; white-space:nowrap; padding:8px 14px; border-radius:999px; border:1.5px solid var(--ink);
+             font-family:'Rubik'; font-weight:700; font-size:.8rem; background:transparent; color:var(--ink);">
+      ${t.label}
+      ${t.badge ? `<span style="position:absolute; top:-6px; left:-6px; background:var(--tomato); color:#fff; font-size:.62rem; font-weight:800; width:17px; height:17px; border-radius:999px; display:flex; align-items:center; justify-content:center;">${t.badge}</span>` : ""}
+    </button>`).join("");
+
+  let body = "";
+  if(state.adminTab === "active") body = renderAdminOrders("active");
+  else if(state.adminTab === "fulfilled") body = renderAdminOrders("fulfilled");
+  else body = renderAdminInventory();
+
+  return `
+  <div class="fade-in" style="padding:16px 16px 30px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button data-action="admin-logout" style="background:none; border:none; font-size:1.2rem;">→</button>
+        <h2 class="display" style="margin:0; font-weight:800; font-size:1.1rem;">מסך ניהול</h2>
+      </div>
+      <span style="font-size:.7rem; background:var(--sage); color:#fff; font-weight:700; padding:4px 10px; border-radius:999px;">מחובר כמנהל</span>
+    </div>
+
+    <div style="display:flex; gap:8px; overflow-x:auto; padding:4px 2px 14px;">
+      ${tabs}
+    </div>
+
+    ${body}
+  </div>`;
+}
+
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+
+/* =====================================================================
+   ניהול אירועים (event delegation — קליק/קלט אחד על כל האפליקציה)
+   ===================================================================== */
+function attachHandlers(){
+  const app = document.getElementById("app");
+
+  app.querySelectorAll("[data-action]").forEach(el=>{
+    const action = el.dataset.action;
+
+    if(action === "note-input"){
+      el.addEventListener("input", (e)=>{
+        const pid = el.dataset.pid;
+        el._noteVal = e.target.value; // נשמר בזיכרון עד ללחיצה על "הוסף לעגלה"
+      });
+      return;
+    }
+    if(action === "admin-stock-input"){
+      el.addEventListener("change", (e)=>{
+        const pid = el.dataset.pid;
+        const p = findProduct(pid);
+        let v = parseInt(e.target.value,10);
+        if(isNaN(v) || v<0) v = 0;
+        p.stock = v;
+        saveProducts(state.products);
+        render();
+      });
+      return;
+    }
+    if(action === "admin-price-input"){
+      el.addEventListener("change", (e)=>{
+        const pid = el.dataset.pid;
+        const p = findProduct(pid);
+        let v = parseFloat(e.target.value);
+        if(isNaN(v) || v<0) v = 0;
+        p.price = v;
+        saveProducts(state.products);
+        showToast(`המחיר של ${p.name} עודכן ל-${v} ${CONFIG.currency}`);
+        render();
+      });
+      return;
+    }
+    if(action === "admin-desc-input"){
+      el.addEventListener("change", (e)=>{
+        const pid = el.dataset.pid;
+        const p = findProduct(pid);
+        p.desc = e.target.value.trim();
+        saveProducts(state.products);
+        render();
+      });
+      return;
+    }
+    if(action === "admin-image-upload"){
+      el.addEventListener("change", (e)=>{
+        const pid = el.dataset.pid;
+        const file = e.target.files && e.target.files[0];
+        if(!file) return;
+        if(!file.type.startsWith("image/")){
+          showToast("נא לבחור קובץ תמונה");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (ev)=>{
+          const img = new Image();
+          img.onload = ()=>{
+            // כיווץ התמונה לגודל סביר לפני שמירה, כדי לא לחרוג ממכסת האחסון של הדפדפן
+            const maxDim = 480;
+            let w = img.width, h = img.height;
+            if(w > h && w > maxDim){ h = Math.round(h*maxDim/w); w = maxDim; }
+            else if(h >= w && h > maxDim){ w = Math.round(w*maxDim/h); h = maxDim; }
+            const canvas = document.createElement("canvas");
+            canvas.width = w; canvas.height = h;
+            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.72);
+
+            const p = findProduct(pid);
+            if(p){
+              p.image = dataUrl;
+              try{
+                saveProducts(state.products);
+                showToast(`התמונה של ${p.name} עודכנה ✓`);
+              }catch(err){
+                showToast("שגיאה בשמירה — ייתכן שהתמונה כבדה מדי");
+                console.warn(err);
+              }
+            }
+            render();
+          };
+          img.onerror = ()=> showToast("לא ניתן היה לטעון את הקובץ כתמונה");
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+      return;
+    }
+
+    el.addEventListener("click", (e)=>{
+      const pid = el.dataset.pid;
+      switch(action){
+
+        /* ---- מסך כניסה: שם + טלפון ---- */
+        case "welcome-submit": {
+          const nameVal = document.getElementById("welcome-name-input").value.trim();
+          const phoneRaw = document.getElementById("welcome-phone-input").value.trim();
+          const phoneDigits = phoneRaw.replace(/[^0-9]/g, "");
+
+          if(nameVal.length < 2){
+            state.welcomeError = "נא להזין שם מלא תקין";
+            render(); return;
+          }
+          if(phoneDigits.length < 9 || phoneDigits.length > 10){
+            state.welcomeError = "נא להזין מספר טלפון תקין";
+            render(); return;
+          }
+          state.customer = { name: nameVal, phone: phoneDigits };
+          saveCustomer(state.customer);
+          state.welcomeError = "";
+          state.view = "menu";
+          render(); window.scrollTo(0,0);
+          break;
+        }
+
+        case "set-cat":
+          state.activeCategory = el.dataset.cat;
+          render();
+          break;
+
+        case "go-cart":
+          state.view = "cart"; render(); window.scrollTo(0,0);
+          break;
+        case "go-menu":
+          state.view = "menu"; render(); window.scrollTo(0,0);
+          break;
+        case "go-admin":
+          state.view = state.adminAuthed ? "admin" : "admin-login";
+          state.adminError = "";
+          render(); window.scrollTo(0,0);
+          break;
+        case "go-ticket": {
+          if(state.cart.length===0) return;
+          const tableInput = document.getElementById("table-number-input");
+          if(tableInput) state.tableNumber = tableInput.value.trim();
+
+          // הפקת מספר הזמנה ייחודי (4 ספרות, בודק התנגשות מול הזמנות קיימות)
+          let newId;
+          do{ newId = String(Math.floor(1000+Math.random()*9000)); }
+          while(state.orders.some(o=>o.id===newId));
+
+          const order = {
+            id: newId,
+            customerName: state.customer ? state.customer.name : "לקוח",
+            customerPhone: state.customer ? state.customer.phone : "",
+            tableNumber: state.tableNumber,
+            items: state.cart.map(i=>{
+              const p = findProduct(i.id);
+              return { id: i.id, name: p ? p.name : i.id, qty: i.qty, note: i.note || "", price: p ? p.price : 0 };
+            }),
+            total: cartTotal(),
+            status: "active",     // active | fulfilled
+            createdAt: Date.now(),
+            fulfilledAt: null,
+          };
+
+          state.orders.push(order);
+          saveOrders(state.orders);
+          state.lastOrder = order.id;
+          state.view = "ticket"; render(); window.scrollTo(0,0);
+          break;
+        }
+        case "new-order":
+          state.cart = [];
+          saveCart(state.cart);
+          state.tableNumber = "";
+          state.lastOrder = null;
+          state.view = "menu"; render(); window.scrollTo(0,0);
+          break;
+
+        /* ---- בקרות כמות על כרטיס מוצר (לפני הוספה לעגלה) ---- */
+        case "qty-plus": case "qty-minus": {
+          const p = findProduct(pid);
+          const card = el.closest(".product-controls");
+          const disp = card.querySelector(".qty-display");
+          let q = parseInt(disp.textContent,10);
+          q = action==="qty-plus" ? Math.min(p.stock, q+1) : Math.max(1, q-1);
+          disp.textContent = q;
+          const plusBtn = card.querySelector('[data-action="qty-plus"]');
+          if(plusBtn) plusBtn.disabled = q>=p.stock;
+          break;
+        }
+        case "add-to-cart": {
+          const p = findProduct(pid);
+          const card = el.closest(".product-controls");
+          const requestedQty = parseInt(card.querySelector(".qty-display").textContent,10);
+          const noteInput = card.querySelector('[data-action="note-input"]');
+          const note = noteInput ? noteInput.value.trim() : "";
+
+          // "שריון" מלאי: מפחיתים מה-stock כבר עכשיו, כדי שאף לקוח אחר (גם בטאב/מכשיר
+          // אחר) לא יוכל להזמין את אותה יחידה שכבר יושבת בעגלה של מישהו.
+          const grantedQty = Math.min(requestedQty, p.stock);
+          if(grantedQty <= 0){
+            showToast(`מצטערים, ${p.name} אזל מהמלאי`);
+            render(); break;
+          }
+
+          p.stock -= grantedQty;
+          saveProducts(state.products);
+
+          const existing = state.cart.find(i=>i.id===pid);
+          if(existing){
+            existing.qty += grantedQty;
+            if(note) existing.note = note;
+          }else{
+            state.cart.push({ id:pid, qty: grantedQty, note });
+          }
+          saveCart(state.cart);
+
+          showToast(grantedQty < requestedQty
+            ? `נוספו רק ${grantedQty} יח' של ${p.name} — זה כל מה שנשאר`
+            : `${p.name} נוסף לעגלה ✓`);
+          render();
+          break;
+        }
+
+        /* ---- עגלה ---- */
+        case "cart-plus": case "cart-minus": {
+          const p = findProduct(pid);
+          const item = state.cart.find(i=>i.id===pid);
+          if(!item) break;
+
+          if(action==="cart-plus"){
+            if(p.stock <= 0){ showToast(`אין יותר ${p.name} במלאי`); render(); break; }
+            p.stock -= 1;
+            item.qty += 1;
+          }else{
+            p.stock += 1;                 // משחררים חזרה למלאי המשותף
+            item.qty -= 1;
+            if(item.qty<=0) state.cart = state.cart.filter(i=>i.id!==pid);
+          }
+          saveProducts(state.products);
+          saveCart(state.cart);
+          render();
+          break;
+        }
+        case "cart-remove": {
+          const item = state.cart.find(i=>i.id===pid);
+          if(item){
+            const p = findProduct(pid);
+            if(p){ p.stock += item.qty; saveProducts(state.products); }  // שחרור מלא של הכמות שהוסרה
+          }
+          state.cart = state.cart.filter(i=>i.id!==pid);
+          saveCart(state.cart);
+          render();
+          break;
+        }
+
+        /* ---- מנהל ---- */
+        case "admin-submit": {
+          const val = document.getElementById("admin-pass-input").value;
+          if(val === CONFIG.adminPassword){
+            state.adminAuthed = true;
+            sessionStorage.setItem(STORAGE_KEY_ADMIN, "1");
+            state.adminError = "";
+            state.view = "admin";
+          }else{
+            state.adminError = "סיסמה שגויה, נסו שוב";
+          }
+          render();
+          break;
+        }
+        case "admin-logout":
+          state.view = "menu"; render();
+          break;
+        case "admin-tab":
+          state.adminTab = el.dataset.tab;
+          render();
+          break;
+        case "toggle-add-product":
+          state.showAddProductForm = !state.showAddProductForm;
+          state.addProductError = "";
+          render();
+          break;
+        case "admin-add-product": {
+          const name = document.getElementById("new-p-name").value.trim();
+          const cat = document.getElementById("new-p-cat").value;
+          const price = parseFloat(document.getElementById("new-p-price").value);
+          const stock = parseInt(document.getElementById("new-p-stock").value, 10);
+          const desc = document.getElementById("new-p-desc").value.trim();
+          const emoji = document.getElementById("new-p-emoji").value.trim() || "🍽";
+
+          if(name.length < 2){ state.addProductError = "נא להזין שם מוצר תקין"; render(); return; }
+          if(isNaN(price) || price < 0){ state.addProductError = "נא להזין מחיר תקין"; render(); return; }
+
+          const newProduct = {
+            id: "p" + Date.now(),
+            cat: cat,
+            name: name,
+            desc: desc || "",
+            price: price,
+            stock: isNaN(stock) || stock < 0 ? 0 : stock,
+            emoji: emoji,
+            image: null,
+            available: true,
+            notePlaceholder: "למשל: הערה מיוחדת להזמנה",
+          };
+          state.products.push(newProduct);
+          saveProducts(state.products);
+
+          state.showAddProductForm = false;
+          state.addProductError = "";
+          showToast(`${name} נוסף לתפריט ✓`);
+          render();
+          break;
+        }
+        case "order-fulfill": {
+          const oid = el.dataset.oid;
+          const order = state.orders.find(o=>o.id===oid);
+          if(order && order.status !== "fulfilled"){
+            order.status = "fulfilled";
+            order.fulfilledAt = Date.now();
+            saveOrders(state.orders);
+            // שימו לב: המלאי כבר הופחת ברגע שהלקוח הוסיף את הפריטים לעגלה שלו,
+            // כך שכאן אין צורך לגעת שוב במלאי — רק לעדכן את הסטטוס.
+            showToast(`הזמנה #${oid} סומנה כסופקה ✓`);
+          }
+          render();
+          break;
+        }
+        case "admin-stock-plus": case "admin-stock-minus": {
+          const p = findProduct(pid);
+          p.stock = action==="admin-stock-plus" ? p.stock+1 : Math.max(0,p.stock-1);
+          saveProducts(state.products);
+          render();
+          break;
+        }
+        case "admin-toggle": {
+          const p = findProduct(pid);
+          p.available = p.available===false ? true : false;
+          saveProducts(state.products);
+          render();
+          break;
+        }
+        case "admin-image-remove": {
+          const p = findProduct(pid);
+          if(p){ p.image = null; saveProducts(state.products); showToast(`התמונה של ${p.name} הוסרה`); }
+          render();
+          break;
+        }
+      }
+    });
+  });
+
+  // Enter מאשר סיסמת מנהל
+  const passInput = document.getElementById("admin-pass-input");
+  if(passInput){
+    passInput.focus();
+    passInput.addEventListener("keydown", (e)=>{
+      if(e.key==="Enter") app.querySelector('[data-action="admin-submit"]').click();
+    });
+  }
+
+  // Enter בטופס הכניסה (שם/טלפון) שולח את הטופס
+  const nameInput = document.getElementById("welcome-name-input");
+  const phoneInput = document.getElementById("welcome-phone-input");
+  if(nameInput && phoneInput){
+    nameInput.focus();
+    [nameInput, phoneInput].forEach(inp=>{
+      inp.addEventListener("keydown", (e)=>{
+        if(e.key==="Enter") app.querySelector('[data-action="welcome-submit"]').click();
+      });
+    });
+  }
+}
+
+render();
+</script>
+</body>
+</html>
